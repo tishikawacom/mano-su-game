@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>魔の巣 〜Insist on the highest standards〜</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- タイトル画面 -->
+    <div id="title-screen" class="screen active">
+      <div class="scanlines"></div>
+      <div class="title-container">
+        <div class="title-logo">
+          <div class="title-main">魔の巣</div>
+          <div class="title-sub">〜Insist on the highest standards〜</div>
+        </div>
+        <div class="spider-deco">🕷️</div>
+        <div class="mode-select">
+          <div class="mode-label">▼ モードを選んでください ▼</div>
+          <div class="modes">
+            <div class="mode-btn" data-mode="tomo" tabindex="0">
+              <span class="mode-name">とも</span>
+              <span class="mode-diff">初級</span>
+              <span class="mode-stars">★☆☆</span>
+            </div>
+            <div class="mode-btn" data-mode="takeshi" tabindex="0">
+              <span class="mode-name">たけし</span>
+              <span class="mode-diff">中級</span>
+              <span class="mode-stars">★★☆</span>
+            </div>
+            <div class="mode-btn" data-mode="kazutaka" tabindex="0">
+              <span class="mode-name">かずたか</span>
+              <span class="mode-diff">上級</span>
+              <span class="mode-stars">★★★</span>
+            </div>
+          </div>
+        </div>
+        <div class="blink-text">スペース / タップ でスタート</div>
+        <div class="hi-score-display">HI <span id="hi-score">00000</span></div>
+      </div>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div id="game-screen" class="screen">
+      <div class="scanlines"></div>
+      <div class="game-header">
+        <div class="mode-indicator" id="mode-indicator"></div>
+        <div class="score-display">SCORE <span id="score">00000</span></div>
+        <div class="hi-score-game">HI <span id="hi-score-game">00000</span></div>
+      </div>
+      <canvas id="game-canvas"></canvas>
+      <div class="game-footer">
+        <div class="lives-display">残機: <span id="lives">❤️❤️❤️</span></div>
+      </div>
+    </div>
+
+    <!-- ゲームオーバー画面 -->
+    <div id="gameover-screen" class="screen">
+      <div class="scanlines"></div>
+      <div class="gameover-container">
+        <div class="gameover-title">GAME OVER</div>
+        <div class="gameover-score">スコア: <span id="final-score">00000</span></div>
+        <div class="gameover-hi">ハイスコア: <span id="final-hi">00000</span></div>
+        <div class="gameover-msg" id="gameover-msg"></div>
+        <div class="gameover-actions">
+          <div class="action-btn" id="retry-btn">もう一度</div>
+          <div class="action-btn" id="title-btn">タイトルへ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
