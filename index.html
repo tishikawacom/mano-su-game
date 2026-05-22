@@ -1,77 +1,341 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>魔の巣 〜Insist on the highest standards〜</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>魔の巣 〜Insist on the highest standards〜</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  background:#1a1a2e;
+  color:#e0e0e0;
+  font-family:'Press Start 2P',monospace,sans-serif;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+#app{width:100%;max-width:800px;position:relative;}
+
+.screen{display:none;position:relative;width:100%;}
+.screen.active{display:block;}
+
+.scanlines{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.12) 2px,rgba(0,0,0,0.12) 4px);
+  pointer-events:none;z-index:999;
+}
+
+.title-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:100vh;padding:20px;gap:22px;
+}
+.title-main{
+  font-size:clamp(26px,6vw,52px);color:#ff6b35;letter-spacing:6px;
+  text-shadow:4px 4px 0 #7a2000,0 0 20px rgba(255,107,53,.5);
+  text-align:center;line-height:1.5;
+  animation:flicker 3s infinite;
+}
+.title-sub{font-size:clamp(7px,1.4vw,11px);color:#f7c59f;margin-top:6px;text-align:center;letter-spacing:1px;}
+.spider-icon{font-size:44px;animation:spin 4s linear infinite;filter:drop-shadow(0 0 8px rgba(255,107,53,.8));}
+@keyframes spin{0%{transform:rotate(0) scale(1);}50%{transform:rotate(180deg) scale(1.2);}100%{transform:rotate(360deg) scale(1);}}
+@keyframes flicker{0%,94%,100%{opacity:1;}95%{opacity:.7;}97%{opacity:.5;}99%{opacity:1;}}
+
+.mode-label{font-size:9px;color:#facc15;text-align:center;margin-bottom:14px;animation:blink .9s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+.modes{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.mode-btn{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:14px 18px;border:3px solid #fff;cursor:pointer;
+  background:rgba(255,255,255,.05);user-select:none;
+  transition:background .1s,border-color .1s,box-shadow .1s;
+}
+.mode-btn:hover,.mode-btn.sel{background:rgba(255,107,53,.18);border-color:#ff6b35;box-shadow:0 0 0 2px #ff6b35;}
+.mode-btn[data-m=tomo]{border-color:#4ade80;}
+.mode-btn[data-m=tomo]:hover,.mode-btn[data-m=tomo].sel{border-color:#4ade80;background:rgba(74,222,128,.18);box-shadow:0 0 0 2px #4ade80;}
+.mode-btn[data-m=takeshi]{border-color:#facc15;}
+.mode-btn[data-m=takeshi]:hover,.mode-btn[data-m=takeshi].sel{border-color:#facc15;background:rgba(250,204,21,.18);box-shadow:0 0 0 2px #facc15;}
+.mode-btn[data-m=kazutaka]{border-color:#ef4444;}
+.mode-btn[data-m=kazutaka]:hover,.mode-btn[data-m=kazutaka].sel{border-color:#ef4444;background:rgba(239,68,68,.18);box-shadow:0 0 0 2px #ef4444;}
+.mode-name{font-size:clamp(12px,3vw,17px);color:#e0e0e0;}
+.mode-diff{font-size:8px;color:#f7c59f;}
+.mode-stars{font-size:11px;}
+
+.hint{font-size:8px;color:#e0e0e0;animation:blink .8s step-end infinite;text-align:center;}
+.hi-title{font-size:10px;color:#facc15;}
+
+@media(max-width:500px){.modes{flex-direction:column;align-items:center;}.mode-btn{width:190px;}}
+
+.game-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:7px 14px;font-size:9px;background:rgba(0,0,0,.4);
+  border-bottom:2px solid rgba(255,255,255,.1);
+}
+.mode-ind{color:#f7c59f;}
+.score-lbl{color:#facc15;}
+.hi-lbl{color:#e0e0e0;}
+#game-canvas{display:block;width:100%;background:#0d0d1a;cursor:none;}
+.game-footer{padding:5px 14px;background:rgba(0,0,0,.4);border-top:2px solid rgba(255,255,255,.1);font-size:9px;}
+
+.go-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:100vh;gap:18px;padding:20px;
+}
+.go-title{
+  font-size:clamp(22px,5vw,38px);color:#ef4444;
+  text-shadow:3px 3px 0 #7f0000;
+  animation:shake .3s ease-in-out;
+}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+.go-score{font-size:11px;color:#facc15;}
+.go-hi{font-size:10px;color:#f7c59f;}
+.go-msg{font-size:8px;color:#4ade80;text-align:center;max-width:380px;line-height:2.2;}
+.go-btns{display:flex;gap:14px;margin-top:6px;}
+.act-btn{
+  padding:11px 18px;border:3px solid #e0e0e0;cursor:pointer;
+  font-family:inherit;font-size:9px;color:#e0e0e0;background:transparent;
+  transition:border-color .1s,color .1s,box-shadow .1s;
+}
+.act-btn:hover{border-color:#ff6b35;color:#ff6b35;box-shadow:0 0 8px rgba(255,107,53,.5);}
+
+body::before{
+  content:'';position:fixed;inset:0;
+  background:linear-gradient(rgba(255,107,53,.025) 1px,transparent 1px),
+             linear-gradient(90deg,rgba(255,107,53,.025) 1px,transparent 1px);
+  background-size:32px 32px;pointer-events:none;
+}
+</style>
 </head>
 <body>
-  <div id="app">
-    <!-- タイトル画面 -->
-    <div id="title-screen" class="screen active">
-      <div class="scanlines"></div>
-      <div class="title-container">
-        <div class="title-logo">
-          <div class="title-main">魔の巣</div>
-          <div class="title-sub">〜Insist on the highest standards〜</div>
-        </div>
-        <div class="spider-deco">🕷️</div>
-        <div class="mode-select">
-          <div class="mode-label">▼ モードを選んでください ▼</div>
-          <div class="modes">
-            <div class="mode-btn" data-mode="tomo" tabindex="0">
-              <span class="mode-name">とも</span>
-              <span class="mode-diff">初級</span>
-              <span class="mode-stars">★☆☆</span>
-            </div>
-            <div class="mode-btn" data-mode="takeshi" tabindex="0">
-              <span class="mode-name">たけし</span>
-              <span class="mode-diff">中級</span>
-              <span class="mode-stars">★★☆</span>
-            </div>
-            <div class="mode-btn" data-mode="kazutaka" tabindex="0">
-              <span class="mode-name">かずたか</span>
-              <span class="mode-diff">上級</span>
-              <span class="mode-stars">★★★</span>
-            </div>
+<div id="app">
+
+  <div id="title-screen" class="screen active">
+    <div class="scanlines"></div>
+    <div class="title-wrap">
+      <div>
+        <div class="title-main">魔の巣</div>
+        <div class="title-sub">〜Insist on the highest standards〜</div>
+      </div>
+      <div class="spider-icon">🕷️</div>
+      <div>
+        <div class="mode-label">▼ モードを選んでください ▼</div>
+        <div class="modes">
+          <div class="mode-btn" data-m="tomo">
+            <span class="mode-name">とも</span>
+            <span class="mode-diff">初　級</span>
+            <span class="mode-stars">★☆☆</span>
+          </div>
+          <div class="mode-btn" data-m="takeshi">
+            <span class="mode-name">たけし</span>
+            <span class="mode-diff">中　級</span>
+            <span class="mode-stars">★★☆</span>
+          </div>
+          <div class="mode-btn" data-m="kazutaka">
+            <span class="mode-name">かずたか</span>
+            <span class="mode-diff">上　級</span>
+            <span class="mode-stars">★★★</span>
           </div>
         </div>
-        <div class="blink-text">スペース / タップ でスタート</div>
-        <div class="hi-score-display">HI <span id="hi-score">00000</span></div>
       </div>
+      <div class="hint">クリック or スペースでスタート</div>
+      <div class="hi-title">HI <span id="hi0">00000</span></div>
     </div>
+  </div>
 
-    <!-- ゲーム画面 -->
-    <div id="game-screen" class="screen">
-      <div class="scanlines"></div>
-      <div class="game-header">
-        <div class="mode-indicator" id="mode-indicator"></div>
-        <div class="score-display">SCORE <span id="score">00000</span></div>
-        <div class="hi-score-game">HI <span id="hi-score-game">00000</span></div>
-      </div>
-      <canvas id="game-canvas"></canvas>
-      <div class="game-footer">
-        <div class="lives-display">残機: <span id="lives">❤️❤️❤️</span></div>
-      </div>
+  <div id="game-screen" class="screen">
+    <div class="scanlines"></div>
+    <div class="game-header">
+      <div class="mode-ind" id="mode-ind"></div>
+      <div class="score-lbl">SCORE <span id="score">00000</span></div>
+      <div class="hi-lbl">HI <span id="hi1">00000</span></div>
     </div>
+    <canvas id="game-canvas"></canvas>
+    <div class="game-footer">残機 <span id="lives"></span></div>
+  </div>
 
-    <!-- ゲームオーバー画面 -->
-    <div id="gameover-screen" class="screen">
-      <div class="scanlines"></div>
-      <div class="gameover-container">
-        <div class="gameover-title">GAME OVER</div>
-        <div class="gameover-score">スコア: <span id="final-score">00000</span></div>
-        <div class="gameover-hi">ハイスコア: <span id="final-hi">00000</span></div>
-        <div class="gameover-msg" id="gameover-msg"></div>
-        <div class="gameover-actions">
-          <div class="action-btn" id="retry-btn">もう一度</div>
-          <div class="action-btn" id="title-btn">タイトルへ</div>
-        </div>
+  <div id="go-screen" class="screen">
+    <div class="scanlines"></div>
+    <div class="go-wrap">
+      <div class="go-title">GAME OVER</div>
+      <div class="go-score">スコア &nbsp;<span id="go-score">00000</span></div>
+      <div class="go-hi">ハイスコア &nbsp;<span id="go-hi">00000</span></div>
+      <div class="go-msg" id="go-msg"></div>
+      <div class="go-btns">
+        <div class="act-btn" id="retry-btn">もう一度</div>
+        <div class="act-btn" id="title-btn">タイトルへ</div>
       </div>
     </div>
   </div>
 
-  <script src="game.js"></script>
+</div>
+<script>
+var MODES={
+  tomo:    {label:'とも（初級）',    speed:4, jf:-13,grav:.60,intv:[120,200],types:['web','spider'],           lives:3,col:'#4ade80'},
+  takeshi: {label:'たけし（中級）',  speed:6, jf:-14,grav:.65,intv:[80,150], types:['web','spider','bat'],      lives:2,col:'#facc15'},
+  kazutaka:{label:'かずたか（上級）',speed:9, jf:-15,grav:.70,intv:[50,110], types:['web','spider','bat','ghost'],lives:1,col:'#ef4444'}
+};
+var _actx=null;
+function ac(){if(!_actx)_actx=new(window.AudioContext||window.webkitAudioContext)();return _actx;}
+function tone(f,tp,dur,vol,delay){try{var c=ac(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type=tp;o.frequency.setValueAtTime(f,c.currentTime+delay);g.gain.setValueAtTime(vol,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+delay+dur);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur);}catch(e){}}
+function sfxJump(){tone(300,'square',.08,.25,0);tone(500,'square',.1,.2,.05);tone(700,'square',.12,.15,.1);}
+function sfxHit(){[180,140,100,70].forEach(function(f,i){tone(f,'sawtooth',.14,.4,i*.06);});vib([80,40,80]);}
+function sfxOver(){[280,220,170,130,90].forEach(function(f,i){tone(f,'square',.18,.28,i*.13);});vib([180,80,180,80,350]);}
+function sfxPt(){tone(880,'square',.06,.14,0);tone(1200,'square',.07,.1,.08);}
+function sfxGo(){[262,330,392,523].forEach(function(f,i){tone(f,'square',.15,.18,i*.1);});}
+function vib(pat){try{if(navigator.vibrate)navigator.vibrate(pat);}catch(e){}}
+var st={mode:null,score:0,hi:+(localStorage.getItem('mano_hi')||0),frame:0,run:false,lives:0,inv:0};
+var cv=document.getElementById('game-canvas'),ctx=cv.getContext('2d'),W=800,H=300;
+cv.width=W;cv.height=H;ctx.imageSmoothingEnabled=false;
+var GY=H-60,pl={x:80,y:GY,w:28,h:36,vy:0,gr:true,af:0,at:0};
+var obs=[],nextObs=100,bgX=0,anim=null;
+var stars=[];for(var _s=0;_s<40;_s++)stars.push({x:Math.random()*W,y:Math.random()*H*.5,sz:Math.random()<.3?2:1,sp:Math.random()*.5+.2});
+var parts=[];
+function pt(x,y,col,n){n=n||8;for(var i=0;i<n;i++){var a=(Math.PI*2*i)/n+Math.random()*.4;parts.push({x:x,y:y,vx:Math.cos(a)*(Math.random()*3+1),vy:Math.sin(a)*(Math.random()*3+1),life:30+Math.random()*20,ml:50,col:col,sz:Math.random()*4+2});}}
+function pxr(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x|0,y|0,w,h);}
+function drawPlayer(x,y,fr,inv){
+  ctx.globalAlpha=inv>0?((inv/4|0)%2===0?.4:1):1;
+  var c={bd:'#8b5cf6',cp:'#6d28d9',fc:'#fde68a',hr:'#1e1b4b',bt:'#374151',hl:'#c4b5fd'};
+  x=x|0;y=y|0;
+  pxr(x+8,y,12,4,c.hr);pxr(x+4,y+4,20,4,c.hr);
+  pxr(x+6,y+8,16,12,c.fc);
+  pxr(x+9,y+11,3,3,c.hr);pxr(x+16,y+11,3,3,c.hr);
+  pxr(x+4,y+20,20,10,c.bd);
+  pxr(x+2,y+20,24,14,c.cp);pxr(x+4,y+34,20,2,c.bd);
+  if(fr===0){pxr(x+6,y+32,6,4,c.bt);pxr(x+16,y+32,6,4,c.bt);}else{pxr(x+4,y+32,6,4,c.bt);pxr(x+18,y+32,6,4,c.bt);}
+  pxr(x+6,y+8,3,3,c.hl);
+  ctx.globalAlpha=1;
+}
+function drawSpider(o){
+  var x=o.x|0,y=o.y|0,lo=Math.sin(o.at*.2)*3,leg='#6b7280',sc='#dc2626';
+  pxr(x-10,y+4+lo,10,2,leg);pxr(x-10,y+8,10,2,leg);pxr(x-10,y+12-lo,10,2,leg);
+  pxr(x+o.w,y+4+lo,10,2,leg);pxr(x+o.w,y+8,10,2,leg);pxr(x+o.w,y+12-lo,10,2,leg);
+  pxr(x+4,y,o.w-8,4,sc);pxr(x+2,y+4,o.w-4,8,sc);pxr(x+4,y+12,o.w-8,6,sc);
+  pxr(x+5,y+5,3,3,'#f00');pxr(x+o.w-8,y+5,3,3,'#f00');
+  pxr(x+o.w/2-1,y-36,2,36,'rgba(255,255,255,.25)');
+}
+function drawWeb(o){
+  var x=o.x|0,y=o.y|0,cx2=x+o.w/2,cy2=y+o.h/2;
+  ctx.strokeStyle='rgba(220,220,220,.75)';ctx.lineWidth=1;
+  for(var r=5;r<=o.w/2;r+=7){ctx.beginPath();ctx.arc(cx2,cy2,r,0,Math.PI*2);ctx.stroke();}
+  for(var a=0;a<8;a++){var ag=(a/8)*Math.PI*2;ctx.beginPath();ctx.moveTo(cx2,cy2);ctx.lineTo(cx2+Math.cos(ag)*o.w/2,cy2+Math.sin(ag)*o.h/2);ctx.stroke();}
+}
+function drawBat(o){
+  var x=o.x|0,y=o.y|0,up=Math.sin(o.at*.3)>0,bc='#7c3aed',dy=up?2:8;
+  pxr(x-12,y+dy,16,4,bc);pxr(x-8,y+(up?0:6),8,up?2:4,bc);
+  pxr(x+o.w-4,y+dy,16,4,bc);pxr(x+o.w,y+(up?0:6),8,up?2:4,bc);
+  pxr(x+4,y+4,o.w-8,12,bc);
+  pxr(x+6,y+6,3,3,'#f00');pxr(x+o.w-9,y+6,3,3,'#f00');
+}
+function drawGhost(o){
+  var x=o.x|0,y=(o.y+Math.sin(o.at*.08)*6)|0,gc='rgba(192,132,252,.9)';
+  pxr(x+4,y,o.w-8,6,gc);pxr(x+2,y+6,o.w-4,12,gc);pxr(x,y+12,o.w,6,gc);
+  for(var i=0;i<4;i++)pxr(x+i*(o.w/4),y+18,o.w/4-2,4,gc);
+  pxr(x+6,y+8,4,4,'#1e1b4b');pxr(x+o.w-10,y+8,4,4,'#1e1b4b');
+}
+function drawObs(o){o.at=(o.at||0)+1;if(o.t==='spider')drawSpider(o);else if(o.t==='web')drawWeb(o);else if(o.t==='bat')drawBat(o);else drawGhost(o);}
+function drawGround(){
+  pxr(0,GY+36,W,2,'#374151');
+  for(var i=0;i<W;i+=8)pxr((i+(bgX|0)%8),GY+38,4,2,'#1f2937');
+  pxr(0,GY+37,W,1,'#4b5563');
+}
+function drawBg(){
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+  var spd=st.mode?MODES[st.mode].speed/8:.5;
+  for(var i=0;i<stars.length;i++){var s=stars[i];ctx.fillStyle=s.sz===2?'#d1d5db':'#6b7280';ctx.fillRect(s.x|0,s.y|0,s.sz,s.sz);s.x-=s.sp*spd;if(s.x<0){s.x=W;s.y=Math.random()*H*.5;}}
+  ctx.fillStyle='#fef3c7';ctx.fillRect(W-80,18,28,28);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(W-73,14,28,28);
+  ctx.strokeStyle='rgba(90,90,140,.12)';ctx.lineWidth=1;
+  var wx=(W-110-(bgX*.3)%W+W)%W;
+  for(var r=10;r<=55;r+=11){ctx.beginPath();ctx.arc(wx,28,r,0,Math.PI*2);ctx.stroke();}
+}
+function mkObs(mode){
+  var cfg=MODES[mode],t=cfg.types[Math.floor(Math.random()*cfg.types.length)],x=W+20,y,w,h;
+  if(t==='bat'||t==='ghost'){y=GY-60-Math.random()*55;w=32;h=22;}
+  else if(t==='web'){y=GY-32;w=38+Math.random()*18;h=42;}
+  else{y=GY-26;w=28;h=26;if(Math.random()<.28)y=GY-80-Math.random()*38;}
+  return{x:x,y:y,w:w,h:h,t:t,at:0};
+}
+function hit(o){var m=7;return pl.x+m<o.x+o.w-m&&pl.x+pl.w-m>o.x+m&&pl.y+m<o.y+o.h-m&&pl.y+pl.h-m>o.y+m;}
+function fmt(n){return(''+Math.floor(n)).padStart(5,'0');}
+function showScr(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});document.getElementById(id).classList.add('active');}
+function updScore(){document.getElementById('score').textContent=fmt(st.score);document.getElementById('hi1').textContent=fmt(st.hi);}
+function updLives(){var cfg=MODES[st.mode],s='';for(var i=0;i<cfg.lives;i++)s+=i<st.lives?'❤️':'🖤';document.getElementById('lives').textContent=s;}
+function loop(){
+  if(!st.run)return;
+  var cfg=MODES[st.mode];
+  st.frame++;st.score+=.1;
+  if(st.score>st.hi)st.hi=st.score;
+  if(st.frame%6===0)updScore();
+  if(Math.floor(st.score)%100===0&&st.frame%6===0&&st.score>10)sfxPt();
+  pl.vy+=cfg.grav;pl.y+=pl.vy;
+  if(pl.y>=GY){pl.y=GY;pl.vy=0;pl.gr=true;}
+  pl.at++;if(pl.gr&&pl.at%10===0)pl.af=1-pl.af;
+  bgX+=cfg.speed*.3;
+  nextObs--;if(nextObs<=0){obs.push(mkObs(st.mode));var mn=cfg.intv[0],mx=cfg.intv[1];nextObs=Math.max(38,mn+Math.floor(Math.random()*(mx-mn))-Math.floor(st.score/180));}
+  for(var i=obs.length-1;i>=0;i--){obs[i].x-=cfg.speed+st.score/500;if(obs[i].x+obs[i].w<-20)obs.splice(i,1);}
+  if(st.inv>0){st.inv--;}else{for(var j=0;j<obs.length;j++){if(hit(obs[j])){sfxHit();pt(pl.x+pl.w/2,pl.y+pl.h/2,cfg.col,12);st.lives--;updLives();st.inv=90;if(st.lives<=0){endGame();return;}break;}}}
+  for(var k=parts.length-1;k>=0;k--){var p=parts[k];p.x+=p.vx;p.y+=p.vy;p.vy+=.15;p.life--;if(p.life<=0)parts.splice(k,1);}
+  drawBg();drawGround();
+  parts.forEach(function(p){ctx.globalAlpha=p.life/p.ml;ctx.fillStyle=p.col;ctx.fillRect(p.x|0,p.y|0,Math.ceil(p.sz),Math.ceil(p.sz));ctx.globalAlpha=1;});
+  obs.forEach(drawObs);
+  drawPlayer(pl.x,pl.y,pl.af,st.inv);
+  if(st.frame%600<8){ctx.fillStyle='rgba(255,107,53,.12)';ctx.fillRect(0,0,W,H);}
+  anim=requestAnimationFrame(loop);
+}
+function endGame(){
+  st.run=false;sfxOver();
+  localStorage.setItem('mano_hi',Math.floor(st.hi));
+  document.getElementById('hi0').textContent=fmt(st.hi);
+  document.getElementById('go-score').textContent=fmt(st.score);
+  document.getElementById('go-hi').textContent=fmt(st.hi);
+  var msgs=['もっと高い基準を！','魔の巣に飲み込まれた...','Insist on the highest standards!','再挑戦で最高を目指せ！'];
+  document.getElementById('go-msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
+  showScr('go-screen');
+}
+function startGame(mode){
+  sfxGo();showScr('game-screen');
+  st.mode=mode;st.score=0;st.frame=0;st.run=true;
+  st.lives=MODES[mode].lives;st.inv=0;
+  pl.y=GY;pl.vy=0;pl.gr=true;pl.af=0;pl.at=0;
+  obs=[];parts=[];nextObs=80;bgX=0;
+  document.getElementById('mode-ind').textContent=MODES[mode].label;
+  document.getElementById('mode-ind').style.color=MODES[mode].col;
+  updScore();updLives();
+  if(anim)cancelAnimationFrame(anim);
+  anim=requestAnimationFrame(loop);
+}
+function jump(){if(!st.run)return;if(pl.gr){pl.vy=MODES[st.mode].jf;pl.gr=false;sfxJump();}}
+document.addEventListener('keydown',function(e){if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump();}});
+cv.addEventListener('click',jump);
+cv.addEventListener('touchstart',function(e){e.preventDefault();jump();},{passive:false});
+document.getElementById('game-screen').addEventListener('touchstart',function(e){e.preventDefault();jump();},{passive:false});
+var selMode=null;
+document.querySelectorAll('.mode-btn').forEach(function(btn){
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    var m=btn.getAttribute('data-m');
+    if(selMode===m){startGame(m);return;}
+    selMode=m;
+    document.querySelectorAll('.mode-btn').forEach(function(b){b.classList.remove('sel');});
+    btn.classList.add('sel');
+  });
+});
+document.addEventListener('keydown',function(e){
+  if(e.code==='Space'&&document.getElementById('title-screen').classList.contains('active')){
+    e.preventDefault();
+    if(selMode){startGame(selMode);}else{selMode='tomo';document.querySelectorAll('.mode-btn').forEach(function(b){b.classList.remove('sel');});document.querySelector('[data-m=tomo]').classList.add('sel');}
+  }
+});
+document.getElementById('retry-btn').addEventListener('click',function(){if(st.mode)startGame(st.mode);});
+document.getElementById('title-btn').addEventListener('click',function(){showScr('title-screen');document.getElementById('hi0').textContent=fmt(st.hi);});
+document.getElementById('hi0').textContent=fmt(st.hi);
+document.getElementById('hi1').textContent=fmt(st.hi);
+</script>
 </body>
 </html>
